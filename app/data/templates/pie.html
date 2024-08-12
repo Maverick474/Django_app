@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    #chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    text {
+        font-size: 14px;
+        fill: white;
+        text-anchor: middle;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .label-0 {
+        position: relative;
+        left: 900px;
+        bottom: 17px;
+        font-weight: bolder;
+    }
+
+    .label-1 {
+        position: relative;
+        bottom: 520px;
+        left: 600px;
+        font-weight: bolder;
+    }
+</style>
+
+<h1 class="text-center my-3">Pie Chart Visualization</h1>
+<div id="chart"></div>
+<div id="labels">
+    <p class="label-0">0.0</p>
+    <p class="label-1">1.0</p>
+</div>
+<div class="d-flex items-center justify-content-around">
+    <button class="btn btn-primary"><a class="text-decoration-none text-white" href="{% url 'scatter' %}">Go Back</a> </button>
+    <button class="btn btn-primary"><a class="text-decoration-none text-white" href="{% url 'box' %}"> Next </a></button>
+</div>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+    let data = [
+        { label: "0.0", value: 84.4 },
+        { label: "1.0", value: 15.6 }
+    ];
+
+    const width = 500;
+    const height = 500;
+    const radius = Math.min(width, height) / 2;
+
+    const color = d3.scaleOrdinal()
+        .domain(data.map(d => d.label))
+        .range(["#1f77b4", "#ff7f0e"]);
+
+    const pie = d3.pie()
+        .value(d => d.value);
+
+    const arc = d3.arc()
+        .outerRadius(radius - 10)
+        .innerRadius(0);
+
+    const svg = d3.select("#chart")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${width / 2},${height / 2})`);
+
+    const drawChart = () => {
+        const arcs = svg.selectAll(".arc")
+            .data(pie(data));
+
+        arcs.enter()
+            .append("g")
+            .attr("class", "arc")
+            .append("path")
+            .attr("d", arc)
+            .attr("fill", d => color(d.data.label))
+            .attr("stroke", "white")
+            .attr("stroke-width", 2)
+            .each(function (d) { this._current = d; });
+
+        arcs.enter()
+            .append("text")
+            .attr("transform", d => `translate(${arc.centroid(d)})`)
+            .text(d => `${d.data.value}%`);
+
+        arcs.select("path").transition().duration(750).attrTween("d", function (d) {
+            const i = d3.interpolate(this._current, d);
+            this._current = i(0);
+            return t => arc(i(t));
+        });
+
+        arcs.select("text")
+            .transition()
+            .duration(750)
+            .attr("transform", d => `translate(${arc.centroid(d)})`)
+            .text(d => `${d.data.value}%`);
+    };
+
+    drawChart();
+
+    svg.on("click", () => {
+        data.reverse();
+        drawChart();
+    });
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .data-point {
+        margin: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+    }
+    .data-point:hover {
+        background-color: #f0f0f0;
+    }
+</style>
+<h1>Data points</h1>
+<div>
+    {% for data_point in data_points %}
+        <div class="data-point" onmouseover="showInfo(this)" onmouseout="hideInfo(this)">
+            <p>Visits: {{ data_point.visits }}</p>
+            <p>Labels: {{ data_point.labels }}</p>
+        </div>
+    {% endfor %}
+    <button class="btn btn-primary btn-lg mb-5 mx-3" type="button"> <a href="/" class="text-white text-decoration-none">Go back</a> </button>
+</div>
+
+<script>
+    function showInfo(element) {
+        element.style.backgroundColor = '#e0e0e0';
+    }
+
+    function hideInfo(element) {
+        element.style.backgroundColor = '#fff';
+    }
+</script>
+
+{% endblock %}

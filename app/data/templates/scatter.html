@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+    }
+    .axis-label {
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .axis:hover {
+        cursor: pointer;
+    }
+</style>
+<h1 class="text-center">Scatter Plot</h1>
+<div class="d-flex align-items-center justify-content-center">
+    <svg width="800" height="500"></svg>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<br />
+<div class="d-flex align-items-center justify-content-around">
+    <button class="btn btn-primary"> <a href="{% url 'histogram' %}" class="text-decoration-none text-white">Go back</a> </button>
+    <button class="btn btn-primary"> <a href="{% url 'pie' %}" class="text-decoration-none text-white">Next</a> </button>
+</div>
+<script>
+    const margin = { top: 20, right: 30, bottom: 50, left: 60 },
+            width = 800 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        const svg = d3.select("svg")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        let data = [
+            { visits: 500, frequency: 1000 },
+            { visits: 700, frequency: 800 },
+            { visits: 1500, frequency: 3000 },
+            { visits: 1200, frequency: 1500 },
+            { visits: 2000, frequency: 2000 },
+            { visits: 2500, frequency: 2500 },
+            { visits: 3200, frequency: 3500 },
+            { visits: 4000, frequency: 5000 },
+            { visits: 4200, frequency: 4800 },
+            { visits: 4800, frequency: 7500 },
+            { visits: 5000, frequency: 10000 },
+            { visits: 6000, frequency: 12000 },
+            { visits: 7000, frequency: 14000 },
+        ];
+
+        let x = d3.scaleLinear()
+            .domain([0, 7000]) 
+            .range([0, width]);
+
+        let y = d3.scaleLinear()
+            .domain([0, 15000]) 
+            .range([height, 0]);
+
+        let xAxis = svg.append("g")
+            .attr("class", "axis") 
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x));
+
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("text-anchor", "end")
+            .attr("x", width)
+            .attr("y", height + 40)
+            .text("Visits");
+
+        let yAxis = svg.append("g")
+            .attr("class", "axis") 
+            .call(d3.axisLeft(y));
+
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("text-anchor", "end")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -50)
+            .attr("x", -20)
+            .text("Frequency");
+
+        let dots = svg.append('g')
+            .selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("cx", d => x(d.visits))
+            .attr("cy", d => y(d.frequency))
+            .attr("r", 5)
+            .style("fill", "#69b3a2")
+            .style("opacity", 0.6)
+            .on("mouseover", function(event, d) {
+                d3.select(this).style("fill", "red");
+            })
+            .on("mouseout", function(event, d) {
+                d3.select(this).style("fill", "#69b3a2");
+            });
+
+        let xReversed = false;
+        let dotsReversed = false;
+
+        function reverseDots() {
+            dotsReversed = !dotsReversed;
+
+            dots.data(data)
+                .transition()
+                .duration(1000)
+                .attr("cy", d => dotsReversed ? y(15000 - d.frequency) : y(d.frequency));
+        }
+
+        function reverseXAxis() {
+            xReversed = !xReversed;
+
+        
+            if (xReversed) {
+                x.domain([7000, 0]);
+            } else {
+                x.domain([0, 7000]);
+            }
+
+            xAxis.transition().duration(1000).call(d3.axisBottom(x));
+
+            dots.data(data)
+                .transition()
+                .duration(1000)
+                .attr("cx", d => x(d.visits));
+        }
+
+        yAxis.on("click", function() {
+            reverseDots();
+        });
+
+        xAxis.on("click", function() {
+            reverseXAxis();
+        });
+
+</script>
+{% endblock %}

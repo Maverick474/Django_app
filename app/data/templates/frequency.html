@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    
+    .axis-label {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .btn-margin {
+        margin-left: 399px;
+    }
+</style>
+
+<h2 class="text-center my-3">Frequency-Time Graph</h2>
+<div class="d-flex align-items-center justify-content-center">
+    <div id="chart" class="chart"></div>
+</div>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<button class="btn btn-primary btn-margin"><a class="text-white text-decoration-none" href="{% url 'box' %}">Go back</a>
+</button>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+    const margin = { top: 20, right: 30, bottom: 80, left: 60 },
+        width = 800 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+
+    const svg = d3.select("#chart")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const xData = ["2023-08-03", "2024-08-01", "2024-08-02", "2024-08-03", "2024-08-04"];
+    const yData = [1, 2, 2, 1, 1];
+
+    let x = d3.scalePoint()
+        .domain(xData)
+        .range([0, width]);
+
+    let y = d3.scaleLinear()
+        .domain([0, d3.max(yData)])
+        .range([height, 0]);
+
+    const xAxisGroup = svg.append("g")
+        .attr("transform", `translate(0, ${height})`);
+
+    const yAxisGroup = svg.append("g");
+
+    const xAxis = d3.axisBottom(x);
+    const yAxis = d3.axisLeft(y);
+
+    xAxisGroup.call(xAxis)
+        .selectAll("text")
+        .attr("transform", "translate(-10,10)rotate(-45)")
+        .style("text-anchor", "end");
+
+    yAxisGroup.call(yAxis);
+
+    const line = svg.append("path")
+        .datum(yData)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 2)
+        .attr("d", d3.line()
+            .x((d, i) => x(xData[i]))
+            .y(d => y(d))
+        );
+
+    const dots = svg.selectAll("dot")
+        .data(yData)
+        .enter().append("circle")
+        .attr("cx", (d, i) => x(xData[i]))
+        .attr("cy", d => y(d))
+        .attr("r", 4)
+        .attr("fill", "steelblue");
+
+    svg.append("text")
+        .attr("class", "axis-label")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -margin.left + 20)
+        .text("Frequency")
+        .style("cursor", "pointer")
+        .on("click", () => reverseYAxis());
+
+    svg.append("text")
+        .attr("class", "axis-label")
+        .attr("text-anchor", "middle")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 20)
+        .text("Time")
+        .style("cursor", "pointer")
+        .on("click", () => reverseXAxis());
+
+    function reverseXAxis() {
+        x.range(x.range().reverse());
+        xAxisGroup.call(xAxis)
+            .selectAll("text")
+            .attr("transform", "translate(-10,10)rotate(-45)")
+            .style("text-anchor", "end");
+        updateChart();
+    }
+
+    function reverseYAxis() {
+        y.range(y.range().reverse());
+        yAxisGroup.call(yAxis);
+        updateChart();
+    }
+
+    function updateChart() {
+        line.attr("d", d3.line()
+            .x((d, i) => x(xData[i]))
+            .y(d => y(d))
+        );
+
+        dots.attr("cx", (d, i) => x(xData[i]))
+            .attr("cy", d => y(d));
+    }
+
+</script>
+
+{% endblock %}
